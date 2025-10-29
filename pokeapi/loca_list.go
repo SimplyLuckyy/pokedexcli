@@ -25,7 +25,8 @@ func (c *Client) ListLoca(pageURL *string) (PokeAPILoca, error) {
 		url = *pageURL
 	}
 
-	if val, ok := c.cache.Get(url); ok {
+	val, ok := c.cache.Get(url)
+	if ok {
 		loca := PokeAPILoca{}
 		err := json.Unmarshal(val, &loca)
 		if err != nil {
@@ -33,7 +34,7 @@ func (c *Client) ListLoca(pageURL *string) (PokeAPILoca, error) {
 		}
 
 		return loca, nil
-	}
+	} 
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {return PokeAPILoca{}, err}
@@ -46,9 +47,10 @@ func (c *Client) ListLoca(pageURL *string) (PokeAPILoca, error) {
 	if err != nil {return PokeAPILoca{}, err}
 
 	loca := PokeAPILoca{}
-	err = json.Unmarshal(data, &locaResp)
+	err = json.Unmarshal(data, &loca)
 	if err != nil {return PokeAPILoca{}, err}
-
+	
 	c.cache.Add(url, data)
-	return loca, nil
+	return loca, nil		
+
 }

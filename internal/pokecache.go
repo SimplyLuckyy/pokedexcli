@@ -3,7 +3,6 @@ package pokecache
 import (
 	"sync"
 	"time"
-	"fmt"
 )
 
 type cacheEntry struct {
@@ -12,51 +11,46 @@ type cacheEntry struct {
 }
 
 type Cache struct {
-	stored	map[string]cacheEntry
-	mu		*sync.Mutex
+	cacheMap	map[string]cacheEntry
+	mu			*sync.Mutex
 }
 
 func NewCache(interval time.Duration) Cache {
-	fmt.Println("New Cache")
 	c := Cache{
-        cache: make(map[string]cacheEntry),
-        mux:   &sync.Mutex{},
+        cacheMap: make(map[string]cacheEntry),
+        mu:   &sync.Mutex{},
     }
 
 	go c.reapLoop(interval)
 	return c
 }
 
-func (*c Cache) Add(key string, val []byte) {
-	fmt.Println("adding %s to cache", key)
+func (c *Cache) Add(key string, val []byte) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	obj := cacheEntry{
 		createdAt:  time.Now(),
 		val:		val,
 	}
-	c.mu.Lock()
 	c.cacheMap[key] = obj
-	c.mu.Unlock()
+	
 }
 
-func (*c Cache) Get(key string) ([]byte, bool) {
-	fmt.Println("getting cache %s", key)
+func (c *Cache) Get(key string) ([]byte, bool) {
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	cmap, ok := c.cacheMap[key]
-	c.mu.Unlock()
-	if !ok {return nil, ok}
 	return cmap.val, ok
 }
 
-func (*c Cache) reapLoop(interval time.Duration) {
-	fmt.Println("Running ReapLoop")
-	now := time.Now
+func (c *Cache) reapLoop(interval time.Duration) {
+	now := time.Now()
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	for cmap := range c.cacheMap {
-		time := now.Sub(c.cacheMap[cmap].createdAt)
-		if time >= interval {
+		timeout := c.cacheMap[cmap].createdAt.Before(now.Add(-interval))
+		if timeout {
 			delete(c.cacheMap, cmap)
-			fmt.Println("Deleted %s from cache", cmap)
 		}
 	}
-	c.mu.Unlock()
 }

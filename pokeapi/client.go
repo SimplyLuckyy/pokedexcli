@@ -2,8 +2,9 @@ package pokeapi
 
 import (
 	"net/http"
+	"time"
 
-	"github.com/simplyluckyy/pokedexcli/internal/pokecache"
+	"github.com/simplyluckyy/pokedexcli/internal"
 )
 
 type Client struct {
@@ -11,8 +12,9 @@ type Client struct {
 	cache	   pokecache.Cache
 }
 
-func NewClient() Client {
+func NewClient(cacheInterval time.Duration) Client {
 	return Client{
 		httpClient: http.Client{},
+		cache: pokecache.NewCache(cacheInterval),
 	}
 }
