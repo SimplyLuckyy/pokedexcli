@@ -44,7 +44,13 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 }
 
 func (c *Cache) reapLoop(interval time.Duration) {
-	now := time.Now()
+	ticker := time.NewTicker(interval)
+	for range ticker.C {
+		c.reap(time.Now(), interval)
+	}
+}
+
+func (c *Cache) reap(now time.Time, interval time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	for cmap := range c.cacheMap {
