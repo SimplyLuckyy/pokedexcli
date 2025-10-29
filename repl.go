@@ -12,7 +12,7 @@ import (
 type cliCommand struct {
 	name		string
 	description string
-	callback	func(*config) error
+	callback	func(*config, []string) error
 }
 
 type config struct {
@@ -38,6 +38,11 @@ func checkCommands() map[string]cliCommand {
 			description: "Display the previous twenty locations",
 			callback:	 commandMapb,
 		},
+		"explore": {
+			name:		 "explore",
+			description: "Explore a location",
+			callback:	 commandExplore,
+		},
 		"exit": {
 			name:		 "exit",
 			description: "Exit the pokedex",
@@ -53,14 +58,14 @@ func startRepl(cfg *config) {
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
-		input := cleanInput(scanner.Text())
-		if len(input) == 0 {continue}
-		command, ok := checkCommands()[input[0]]
+		command, args  := cleanInput(scanner.Text())
+		if len(command) == 0 {continue}
+		com, ok := checkCommands()[command]
 		if !ok {
 			fmt.Println("Unknown Command")
 			continue
 		} else {
-			err := command.callback(cfg)
+			err := com.callback(cfg, args)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -69,8 +74,10 @@ func startRepl(cfg *config) {
 	}
 }
 
-func cleanInput(text string) []string {
+func cleanInput(text string) (command string, args []string) {
 	fixedText := strings.Fields((strings.ToLower(text)))
-	return fixedText
+	command = fixedText[0]
+	args = fixedText[1:]
+	return command, args
 }
 
