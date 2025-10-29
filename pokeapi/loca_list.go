@@ -9,7 +9,7 @@ import (
 
 const (baseURL = "https://pokeapi.co/api/v2")
 
-type RespShallowLoca struct {
+type PokeAPILoca struct {
 	Count int 	 	 `json:"count"`
 	Next  *string 	 `json:"next"`
 	Prev  *string 	 `json:"previous"`
@@ -19,25 +19,36 @@ type RespShallowLoca struct {
 	} `json:"results"`
 }
 
-func (c *Client) ListLoca(pageURL *string) (RespShallowLoca, error) {
+func (c *Client) ListLoca(pageURL *string) (PokeAPILoca, error) {
 	url := baseURL + "/location-area"
 	if pageURL != nil {
 		url = *pageURL
 	}
 
+	if val, ok := c.cache.Get(url); ok {
+		loca := PokeAPILoca{}
+		err := json.Unmarshal(val, &loca)
+		if err != nil {
+			return PokeAPILoca{}, err
+		}
+
+		return loca, nil
+	}
+
 	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {return RespShallowLoca{}, err}
+	if err != nil {return PokeAPILoca{}, err}
 
 	resp, err := c.httpClient.Do(req)
-	if err != nil {return RespShallowLoca{}, err}
+	if err != nil {return PokeAPILoca{}, err}
 	defer resp.Body.Close()
 
 	data, err := io.ReadAll(resp.Body)
-	if err != nil {return RespShallowLoca{}, err}
+	if err != nil {return PokeAPILoca{}, err}
 
-	locaResp := RespShallowLoca{}
+	loca := PokeAPILoca{}
 	err = json.Unmarshal(data, &locaResp)
-	if err != nil {return RespShallowLoca{}, err}
+	if err != nil {return PokeAPILoca{}, err}
 
-	return locaResp, nil
+	c.cache.Add(url, data)
+	return loca, nil
 }
