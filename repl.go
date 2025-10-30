@@ -19,6 +19,7 @@ type config struct {
 	pokeapiClient	pokeapi.Client
 	next			*string
 	prev 	 		*string
+	pokedex			map[string]pokeapi.PokeAPIPokeINFO
 }
 
 func checkCommands() map[string]cliCommand {
@@ -42,6 +43,21 @@ func checkCommands() map[string]cliCommand {
 			name:		 "explore",
 			description: "Explore a location",
 			callback:	 commandExplore,
+		},
+		"catch": {
+			name:		 "catch",
+			description: "Catch a pokemon",
+			callback:	 commandCatch,
+		},
+		"inspect": {
+			name:		 "inspect",
+			description: "Inspect a caught pokemon",
+			callback:	 commandInspect,
+		},
+		"pokedex": {
+			name:		 "pokedex",
+			description: "Vew your caught pokemon",
+			callback:	 commandPokedex,
 		},
 		"exit": {
 			name:		 "exit",
